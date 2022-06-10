@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from "react";
+import { Link } from "react-router-dom";
 import Results from "./Results";
 import useBreedList from "./useBreedList";
 import ThemeContext from "./ThemeContext";
@@ -12,20 +13,21 @@ const SearchParams = () => {
   const [pets, setPets] = useState([]);
   const [breeds] = useBreedList(animal);
   const [theme, setTheme] = useContext(ThemeContext);
+  const [hasNext, setHasNext] = useState("");
+  const [pageIndex, setPageIndex] = useState(0);
 
   useEffect(() => {
     requestPets();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pageIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function requestPets() {
     const res = await fetch(
-      `http://pets-v2.dev-apis.com/pets?animal=${animal}&location=${location}&breed=${breed}`
+      `http://pets-v2.dev-apis.com/pets?animal=${animal}&location=${location}&breed=${breed}&page=${pageIndex}`
     );
     const json = await res.json();
-
     setPets(json.pets);
+    setHasNext(json.hasNext);
   }
-
   return (
     <div className="search-params">
       <form
@@ -97,6 +99,26 @@ const SearchParams = () => {
         </label>
         <button style={{ backgroundColor: theme }}>Submit</button>
       </form>
+      <div style={{ display: "inline-flex" }}>
+        {hasNext && (
+          <button
+            onClick={() => {
+              setPageIndex(pageIndex + 1);
+            }}
+          >
+            Next Page
+          </button>
+        )}
+        {pageIndex > 0 && (
+          <button
+            onClick={() => {
+              setPageIndex(pageIndex - 1);
+            }}
+          >
+            Previous Page
+          </button>
+        )}
+      </div>
       <Results pets={pets} />
     </div>
   );
